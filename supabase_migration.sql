@@ -4,10 +4,10 @@ CREATE EXTENSION IF NOT EXISTS "pgmq" WITH SCHEMA "pgmq_public";
 
 SELECT FROM pgmq.create('emails');
 
-alter table pgmq.q_my_queue enable row level security;
+alter table pgmq.q_emails enable row level security;
 
 create policy "Allow anon and authenticated to access messages from queue" 
-on "pgmq"."emails" 
+on "pgmq"."q_emails" 
 as PERMISSIVE 
 for ALL 
 to anon, authenticated 
