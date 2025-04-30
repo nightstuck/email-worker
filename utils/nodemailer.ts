@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport(SMTP_options);
 let flip = true;
 
 export async function sendSMTPRequest(email_data: email_data, email_to: string, queue_msg_id: number) {
-    // artificial mailing B)
+    // temporary artificial mailing B)
     console.log(`Start #${queue_msg_id} E-Mail Template #${email_data.id} ${email_data.subject} to ${email_to}`);
     await timeout((Math.random() * 5 + 1) * 1000);
     console.log(`Finished #${queue_msg_id}`);
