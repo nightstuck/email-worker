@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { email_data, emailSendResult } from "./types";
+import { emailData, emailSendResult } from "./types";
 import timeout from "./timeout";
 import { SMTP_options } from "./smtp_config";
 
@@ -8,48 +8,48 @@ const transporter = nodemailer.createTransport(SMTP_options);
 //ONLY FOR DEMONSTRATION
 let flip = 0;
 
-export async function sendSMTPRequest(email_data: email_data, email_to: string, queue_msg_id: number) {
+export async function sendSMTPRequest(emailData: emailData, emailTo: string, queueMsgId: number) {
     // temporary artificial mailing B)
-    console.log(`Start #${queue_msg_id} E-Mail Template #${email_data.id} ${email_data.subject} to ${email_to}`);
+    console.log(`Start #${queueMsgId} E-Mail Template #${emailData.id} ${emailData.subject} to ${emailTo}`);
     await timeout((Math.random() * 5 + 1) * 1000);
     flip++;
-    const smtp_successful = flip % 5 != 0;
-    if (smtp_successful) console.log(`Finished #${queue_msg_id}`);
-    else console.log(`Failed #${queue_msg_id}`);
-    const smtp_error_msg: string | null = "";
+    const smtpSuccessful = flip % 5 != 0;
+    if (smtpSuccessful) console.log(`Finished #${queueMsgId}`);
+    else console.log(`Failed #${queueMsgId}`);
+    const smtpErrorMsg: string | null = "";
 
     return {
-        smtp_successful,
-        email_id: email_data.id,
-        smtp_error_msg,
-        email_to,
-        queue_msg_id,
+        smtp_successful: smtpSuccessful,
+        email_id: emailData.id,
+        smtp_error_msg: smtpErrorMsg,
+        email_to: emailTo,
+        queue_msg_id: queueMsgId,
     } as emailSendResult;
 
     /* nodemailer implementation
     let message =
-        email_data.attachments == null
+        emailData.attachments == null
             ? {
-                  from: email_data.from,
+                  from: emailData.from,
                   to: email_to,
-                  subject: email_data.subject,
-                  text: email_data.text || "",
-                  html: email_data.html,
+                  subject: emailData.subject,
+                  text: emailData.text || "",
+                  html: emailData.html,
               }
             : {
-                  from: email_data.from,
+                  from: emailData.from,
                   to: email_to,
-                  subject: email_data.subject,
-                  text: email_data.text || "",
-                  html: email_data.html,
-                  attachements: email_data.attachments,
+                  subject: emailData.subject,
+                  text: emailData.text || "",
+                  html: emailData.html,
+                  attachements: emailData.attachments,
               };
 
     transporter.sendMail(message, (error, info) => {
         console.log(info);
         return {
             smtp_successful: error == null,
-            email_id: email_data.id,
+            email_id: emailData.id,
             smtp_error_msg: String(error),
             email_to,
             queue_msg_id,

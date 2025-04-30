@@ -2,76 +2,67 @@ import dotenv from "dotenv";
 import { emailSendResult, readQueueResponse } from "./utils/types";
 import timeout from "./utils/timeout";
 import { sendSMTPRequest } from "./utils/nodemailer";
-import {
-  deleteQueueItems,
-  getEmailData,
-  logToDB,
-  readQueueItems,
-} from "./utils/supabase";
+import { deleteQueueItems, getEmailData, logToDB, readQueueItems } from "./utils/supabase";
 
 dotenv.config();
 
 const amountOfQueueItems = process.env.AMOUNT_QUEUE_ITEMS || 5;
 
 let main = async () => {
-  let queue_emtpy = await processNextQueueItems(Number(amountOfQueueItems));
+    let queueEmtpy = await processNextQueueItems(Number(amountOfQueueItems));
 
-  if (queue_emtpy) {
-    console.log("Queue seems empty, waiting 3 Seconds...");
-    await timeout(3000);
-  }
-  main();
+    if (queueEmtpy) {
+        console.log("Queue seems empty, waiting 3 Seconds...");
+        await timeout(3000);
+    }
+    main();
 };
 
 main();
 
 async function processNextQueueItems(amount: number) {
-  const queue_items = await readQueueItems(amount);
+    const queueItems = await readQueueItems(amount);
 
-  if (queue_items.data.length <= 0) return true;
+    if (queueItems.data.length <= 0) return true;
 
-  const results = await sendEmails(queue_items);
+    const results = await sendEmails(queueItems);
 
-  await logToDB(results);
+    await logToDB(results);
 
-  await deleteQueueItems(results);
+    await deleteQueueItems(results);
 
-  return false;
+    return false;
 }
 
-async function sendEmails(queue_items: readQueueResponse) {
-  let promises: Promise<emailSendResult>[] = [];
+async function sendEmails(queueItems: readQueueResponse) {
+    let promises: Promise<emailSendResult>[] = [];
 
-  for (let i = 0; i < queue_items.data.length; i++) {
-    promises.push(
-      createSendEmailPromise(
-        queue_items.data[i].message.email_id,
-        queue_items.data[i].msg_id,
-        queue_items.data[i].message.email_to
-      )
-    );
-  }
+    for (let i = 0; i < queueItems.data.length; i++) {
+        promises.push(
+            createSendEmailPromise(
+                queueItems.data[i].message.email_id,
+                queueItems.data[i].msg_id,
+                queueItems.data[i].message.email_to
+            )
+        );
+    }
 
-  const results = await Promise.all(promises);
+    const results = await Promise.all(promises);
 
-  return results;
+    return results;
 }
 
-function createSendEmailPromise(
-  email_id: number,
-  queue_msg_id: number,
-  email_to: string
-) {
-  const emailPromise = new Promise<emailSendResult>(async (resolve, reject) => {
-    let emailData = await getEmailData(email_id);
+function createSendEmailPromise(emailId: number, queueMsgId: number, emailTo: string) {
+    const emailPromise = new Promise<emailSendResult>(async (resolve, reject) => {
+        let emailData = await getEmailData(emailId);
 
-    if (emailData == null)
-      return reject("No E-Mail Data available. Check Supabase ENV Variables.");
+        if (emailData == null)
+            return reject("No E-Mail Data available. Check Supabase ENV Variables and if table/template exists");
 
-    let result = await sendSMTPRequest(emailData, email_to, queue_msg_id);
+        let result = await sendSMTPRequest(emailData, emailTo, queueMsgId);
 
-    resolve(result);
-  });
+        resolve(result);
+    });
 
-  return emailPromise;
+    return emailPromise;
 }

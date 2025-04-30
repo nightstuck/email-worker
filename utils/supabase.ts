@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { email_data, emailSendResult, readQueueResponse } from "./types";
+import { emailData, emailSendResult, readQueueResponse } from "./types";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -8,16 +8,16 @@ const supabaseUrl = process.env.SUPABASE_URL || "http://localhost:8000";
 const supabaseKey = process.env.SUPABASE_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-let email_data_cache: email_data | null = null;
+let emailDataCache: emailData | null = null;
 
 export async function readQueueItems(amount: number) {
-    const queue_items = (await supabase.schema("pgmq_public").rpc("read", {
+    const queueItems = (await supabase.schema("pgmq_public").rpc("read", {
         queue_name: "emails",
         sleep_seconds: 5 * amount,
         n: amount,
     })) as readQueueResponse;
 
-    return queue_items;
+    return queueItems;
 }
 
 export async function deleteQueueItems(results: emailSendResult[]) {
@@ -37,13 +37,13 @@ export async function logToDB(results: emailSendResult[]) {
 }
 
 export async function getEmailData(email_id: number) {
-    if (email_data_cache != null && email_data_cache.id == email_id) {
-        return email_data_cache;
+    if (emailDataCache != null && emailDataCache.id == email_id) {
+        return emailDataCache;
     }
 
     let { error, data } = await supabase.from("email_template").select().eq("id", email_id);
     if (error != null || data == null) return null;
-    email_data_cache = data[0] as email_data;
+    emailDataCache = data[0] as emailData;
 
-    return email_data_cache;
+    return emailDataCache;
 }
