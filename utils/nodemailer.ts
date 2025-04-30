@@ -6,15 +6,16 @@ import { SMTP_options } from "./smtp_config";
 const transporter = nodemailer.createTransport(SMTP_options);
 
 //ONLY FOR DEMONSTRATION
-let flip = true;
+let flip = 0;
 
 export async function sendSMTPRequest(email_data: email_data, email_to: string, queue_msg_id: number) {
     // temporary artificial mailing B)
     console.log(`Start #${queue_msg_id} E-Mail Template #${email_data.id} ${email_data.subject} to ${email_to}`);
     await timeout((Math.random() * 5 + 1) * 1000);
-    console.log(`Finished #${queue_msg_id}`);
-    flip = !flip;
-    const smtp_successful = flip;
+    flip++;
+    const smtp_successful = flip % 5 != 0;
+    if (smtp_successful) console.log(`Finished #${queue_msg_id}`);
+    else console.log(`Failed #${queue_msg_id}`);
     const smtp_error_msg: string | null = "";
 
     return {
@@ -25,7 +26,7 @@ export async function sendSMTPRequest(email_data: email_data, email_to: string, 
         queue_msg_id,
     } as emailSendResult;
 
-    // nodemailer implementation
+    /* nodemailer implementation
     let message =
         email_data.attachments == null
             ? {
@@ -53,5 +54,5 @@ export async function sendSMTPRequest(email_data: email_data, email_to: string, 
             email_to,
             queue_msg_id,
         } as emailSendResult;
-    });
+    });*/
 }
